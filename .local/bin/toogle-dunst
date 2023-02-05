@@ -1,9 +1,10 @@
 #!/bin/bash
 if dunstctl is-paused | grep -q 'false'; then
-   MESSAGE="Disabling notifications"
+   notify-send -u normal -i ~/.config/dunst/images/meditation.png \
+       "Disabling notifications"
+   sleep 1 && dunstctl set-paused toggle # to see the notification
 else
-   MESSAGE="Enabling notifications"
+   dunstctl set-paused toggle
+   notify-send -u normal -i ~/.config/dunst/images/meditation.png \
+       "(Re-)enabling notifications"
 fi
-
-notify-send "$MESSAGE"
-dunstctl set-paused toggle
