@@ -186,7 +186,7 @@ myConfig =
       , startupHook = do
           spawnOnce "kmonad ~/.config/kmonad.kbd"
 
-          spawn "exec ~/.local/bin/lock.sh"
+          spawn "exec ~/.local/bin/autolock"
           spawnOnce "picom &"
 
           spawnOnce
