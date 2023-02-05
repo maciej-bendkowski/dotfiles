@@ -1,0 +1,9 @@
+#!/bin/bash
+if dunstctl is-paused | grep -q 'false'; then
+   MESSAGE="Disabling notifications"
+else
+   MESSAGE="Enabling notifications"
+fi
+
+notify-send "$MESSAGE"
+dunstctl set-paused toggle

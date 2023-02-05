@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+if amixer -D pulse sget Master | grep 'Left:' | grep -q '\[on\]'; then
+    amixer -D pulse sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }'
+else
+    echo "(mute)"
+fi

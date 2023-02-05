@@ -1,0 +1,13 @@
+#!/bin/bash
+# Toogles the default PulseAudio sink.
+
+DEFAULT_SINK=$(pactl info | grep "Domyślny odpływ" | cut -d " " -f3)
+X=$(pactl list sinks | grep -E "Nazwa: $DEFAULT_SINK|Wyciszenie" | grep "Nazwa:" -A1 | tail -1 | awk '{print $2}')
+
+if [ "$X" == nie ]; then
+    s=1
+else
+    s=0
+fi
+
+pactl set-sink-mute "$DEFAULT_SINK" "$s"
