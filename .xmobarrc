@@ -1,0 +1,76 @@
+Config {
+
+   -- appearance
+     font =         "xft:Mononoki Nerd Font:pixelsize=15:antialias=true:hinting=true"
+   , additionalFonts = ["xft:Mononoki Nerd Font:pixelsize=15:antialias=true:hinting=true"]
+   , bgColor      = "#2D2A2E"
+   , fgColor      = "#FCFCFA"
+
+   , position =     TopSize L 100 24
+
+   -- layout
+   , sepChar =  "%"   -- delineator between plugin names and straight text
+   , alignSep = "}{"  -- separator between left-right alignment
+   , template = "  <icon=haskell_20.xpm/> <fc=#666666>|</fc>\
+   \ %UnsafeStdinReader% }\
+   \{ %cpu% (%coretemp%) <fc=#666666>|</fc>\
+   \ %memory% <fc=#666666>|</fc>\
+   \ %disku% <fc=#666666>|</fc>\
+   \ %volumeicon% Volume: %myvolume% <fc=#666666>|</fc>\
+   \ %date% %trayerpad%"
+
+   -- general behavior
+   , lowerOnStart =     True    -- send to bottom of window stack on start
+   , hideOnStart =      False   -- start with window unmapped (hidden)
+   , allDesktops =      True    -- show on all desktops
+   , overrideRedirect = True    -- set the Override Redirect flag (Xlib)
+   , pickBroadest =     False   -- choose widest display (multi-monitor)
+   , persistent =       True    -- enable/disable hiding (True = disabled)
+   , iconRoot     = ".config/xmobar"  -- default: "."
+
+   -- plugins
+   --   Numbers can be automatically colored according to their value. xmobar
+   --   decides color based on a three-tier/two-cutoff system, controlled by
+   --   command options:
+   --     --Low sets the low cutoff
+   --     --High sets the high cutoff
+   --
+   --     --low sets the color below --Low cutoff
+   --     --normal sets the color between --Low and --High cutoffs
+   --     --High sets the color above --High cutoff
+   --
+   --   The --template option controls how the plugin is displayed. Text
+   --   color can be set by enclosing in <fc></fc> tags. For more details
+   --   see http://projects.haskell.org/xmobar/#system-monitor-plugins.
+   , commands =
+
+        -- battery monitor
+        [Run Com "echo" ["<fn=1>\xf242  </fn>"] "baticon" 3600
+
+        , Run Cpu ["-t", "<fn=1>\xf108   </fn>cpu: (<total>%)","-H","50","--high","red"] 20
+        , Run Memory ["-t", "<fn=1>\xf233   </fn>mem: <used>M (<usedratio>%)"] 20
+
+        -- cpu core temperature monitor
+        , Run CoreTemp       [ "--template" , "Temp: <core0>°C|<core1>°C|<core2>°C|<core3>°C"
+                             , "--Low"      , "70"        -- units: °C
+                             , "--High"     , "85"        -- units: °C
+                             , "--low"      , "green"
+                             , "--normal"   , "orange"
+                             , "--high"     , "red"
+                             ] 50
+
+        -- Disk space free
+        , Run DiskU [("/", "<fn=2>\xf0c7 </fn>  hdd: <free> free")] [] 60
+
+        -- time and date indicator
+        --   (%F = y-m-d date, %a = day of week, %T = h:m:s time)
+        , Run Date           "<fn=1>\xf017  </fn>(%a) %_d %b %Y %T" "date" 10
+        , Run Com "echo" ["<fn=1>\xf028  </fn>"] "volumeicon" 3600
+        , Run Com            "get-volume" [] "myvolume" 10
+
+        -- Script that dynamically adjusts xmobar padding depending on number of trayer icons.
+        , Run Com ".local/bin/trayer-padding-icon" [] "trayerpad" 20
+
+        , Run UnsafeStdinReader
+        ]
+   }
