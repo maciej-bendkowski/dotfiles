@@ -26,7 +26,7 @@ Config {
    , overrideRedirect = True    -- set the Override Redirect flag (Xlib)
    , pickBroadest =     False   -- choose widest display (multi-monitor)
    , persistent =       True    -- enable/disable hiding (True = disabled)
-   , iconRoot     = ".config/xmobar"  -- default: "."
+   , iconRoot     = ".config/xmobar-icons"  -- default: "."
 
    -- plugins
    --   Numbers can be automatically colored according to their value. xmobar
