@@ -1,0 +1,134 @@
+(defcfg
+  ;; For Linux
+  input  (device-file "/dev/input/by-id/usb-Metadot_-_Das_Keyboard_Das_Keyboard_4-event-kbd")
+  output (uinput-sink "My KMonad output"
+    ;; To understand the importance of the following line, see the section on
+    ;; Compose-key sequences at the near-bottom of this file.
+     "/usr/bin/sleep 1 && /usr/bin/setxkbmap -option compose:ralt")
+
+  ;; Comment this is you want unhandled events not to be emitted
+  fallthrough true
+
+  ;; Set this to false to disable any command-execution in KMonad
+  allow-cmd false
+)
+
+
+#| --------------------------------------------------------------------------
+                         Necessary: the `defsrc` block
+
+  It is difficult to explain the `defsrc` block without immediately going into
+  `deflayer` blocks as well. Essentially, KMonad maps input-events to various
+  internal actions, many of which generate output events. The `defsrc` block
+  explains the layout on which we specify our `deflayer`s down the line.
+
+  It is important to realize that the `defsrc` block doesn't *necessarily* have
+  to coincide with your actual input keyboard. You can specify a full 100%
+  `defsrc` block, but only use a 40% keyboard. This will mean that every
+  `deflayer` you specify will also have to match your 100% `defsrc`, and that
+  your actual keyboard would be physically unable to trigger about 60% of your
+  keymap, but it would be perfectly valid syntax.
+
+  The dual of this (and more useful) is that it is also perfectly valid to only
+  specify that part of your keyboard in `defsrc` that you want to remap. If you
+  use a 100% keyboard, but don't want to remap the numpad at all you can simply
+  leave the numpad out of your `defsrc`, and it should work just fine. In that
+  particular case you probably want to set `fallthrough` to `true` in your
+  `defcfg` block though.
+
+  In the future we would like to provide support for multiple, named `defsrc`
+  blocks, so that it becomes easier to specify various layers for just the
+  numpad, for example, but at the moment any more or less than 1 `defsrc` block
+  will result in an error.
+
+  The layouting in the `defsrc` block is completely free, whitespace simply gets
+  ignored. We strive to provide a name for every keycode that is no longer than
+  4 characters, so we find that laying out your keymap in columns of 5 works out
+  quite nicely (although wider columns will allow for more informative aliases,
+  see below).
+
+  Most keycodes should be obvious. If you are unsure, check
+  './src/KMonad/Keyboard/Keycode.hs'. Every Keycode has a name corresponding to
+  its Keycode name, but all lower-case and with the 'Key' prefix removed. There
+  are also various aliases for Keycodes starting around line 350. If you are
+  trying to bind a key and there is not a 4-letter alias, please file an issue,
+  or better yet, a pull-request, and it will be added promptly.
+
+  Also, you can consult './keymap/template/' for various input templates. Here
+  we use the input-template for 'us_ansi_60.kbd'
+
+  -------------------------------------------------------------------------- |#
+
+(defsrc
+  esc  F1   F2   F3   F4   F5   F6   F7   F8   F9   F10  F11  F12
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  caps a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl lmet lalt           spc            ralt rmet cmp  rctl
+)
+
+;; Maps the caps lock to ESC.
+;; The default ESC key is blocked.
+(deflayer capsasesc
+  XX  F1   F2   F3   F4   F5   F6   F7   F8   F9   F10  F11  F12
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  esc  a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl lmet lalt           spc            @sym rmet cmp  rctl
+)
+
+#| --------------------------------------------------------------------------
+                        Optional: Compose-key sequences
+
+  Compose-key sequences are series of button-presses that your operating system
+  will interpret as the insertion of a special character, like accented
+  characters, or various special-languages. In that sense, they are just
+  syntactic sugar for keyboard macros.
+
+  To get this to work on Linux you will need to set your compose-key to RightAlt
+  (customization of this option is forthcoming). The line in the `defcfg` block
+  at the top of this file should work. Note that you need to wait ever so
+  slightly for the keyboard to register with linux before the command gets
+  executed, that's why the `sleep 1`. Also, note that all the
+  `/run/current-system` stuff is because the author uses NixOS. Just find a
+  shell-command that will:
+  1. Sleep a moment
+  2. Set the compose-key to ralt
+
+  After this, this should work out of the box under Linux. Windows does not
+  recognize the same compose-key sequences, but WinCompose will make most of the
+  sequences line up with KMonad: http://wincompose.info/
+  This has not in any way been tested on Mac.
+
+  In addition to hard-coded symbols, we also provide 'uncompleted' macros. Since
+  a compose-key sequence is literally just a series of keystrokes, we can omit
+  the last one, and enter the sequence for 'add an umlaut' and let the user then
+  press some letter to add this umlaut to. These are created using the `+"`
+  syntax.
+
+  -------------------------------------------------------------------------- |#
+
+(defalias
+  sym (layer-toggle symbols)
+  csym (layer-toggle capsymbols)
+)
+
+;; Diacritics
+(deflayer symbols
+  _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    ę    _    _    _    _    _    ó    _    _    _    _
+  _    ą    ś    _    _    _    _    _    _    ł    _    _    _
+  @csym    ż     ź    ć    _    _    ń    _    _    _    _    _
+  _    _    _              _              _    _    _    _)
+
+;; Capitalised diacritics
+(deflayer capsymbols
+  _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    Ę    _    _    _    _    _    Ó    _    _    _    _
+  _    Ą    Ś    _    _    _    _    _    _    Ł    _    _    _
+  _    Ź    Ż    Ć    _    _    Ń    _    _    _    _    _
+  _    _    _              _              _    _    _    _)
