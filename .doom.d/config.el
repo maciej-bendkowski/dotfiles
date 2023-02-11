@@ -81,8 +81,12 @@
       '(("t" "TODO" entry (file "~/org/todo.org")
          "* TODO %?\n %i\n %a")))
 
+(setq org-todo-keywords
+  '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+    (sequence "|" "WAIT(w)" "BACK(b)")))
+
 (setq org-agenda-custom-commands
-      '((" " "Personal agenda"
+      '(("d" "Dashboard"
          ((agenda ""
                 ((org-agenda-span 'day)))
           (todo "TODO"
