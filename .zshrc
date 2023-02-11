@@ -129,4 +129,3 @@ export PATH=~/.emacs.d/bin:~/.local/bin:$PATH
 export LOCALE_ARCHIVE=/usr/lib/locale/locale-archive
 
 eval "$(direnv hook zsh)"
-neofetch
