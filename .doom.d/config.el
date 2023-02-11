@@ -9,6 +9,8 @@
 (setq user-full-name "Maciej Bendkowski"
       user-mail-address "maciej.bendkowski@gmail.com")
 
+(setq auth-sources '("~/.authinfo.gpg"))
+
 (setq browse-url-browser-function 'browse-url-generic
       browse-url-generic-program "google-chrome-stable")
 
@@ -38,14 +40,122 @@
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type 'relative)
 
-(setq doom-font (font-spec :family "Hasklug Nerd Font" :size 20)
+;; wrap lines at 80 characters in all modes.
+(setq-default fill-column 80)
+(+global-word-wrap-mode +1)
+
+(setq doom-font (font-spec :family "Hasklug Nerd Font" :size 18)
       doom-unicode-font doom-font
       doom-font-increment 1)
 
+;; dashboard
+(setq fancy-splash-image "~/.config/doom-icons/emacs.svg")
+(assoc-delete-all "Open documentation" +doom-dashboard-menu-sections)
+(add-to-list '+doom-dashboard-menu-sections
+        '("Add journal entry"
+          :icon (all-the-icons-octicon "calendar"
+                                       :face 'doom-dashboard-menu-title)
+          :when (featurep! :lang org +journal)
+          :face (:inherit (doom-dashboard-menu-title bold))
+          :action org-journal-new-entry))
+
+;; Spell-checking
+(setq ispell-program-name "aspell"
+      ispell-dictionary "en_GB")
+
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/org/")
+(setq org-directory "~/org/"
+      org-return-follows-link t
+      org-use-speed-commands t
+      org-deadline-warning-days 30
+      org-agenda-tags-column 75)
 
+(setq org-journal-dir "~/org/journal"
+      org-journal-date-prefix "#+TITLE: "
+      org-journal-time-prefix "* "
+      org-journal-date-format "%a, %d-%m-%Y"
+      org-journal-file-format "%Y-%m-%d.org")
+
+(setq org-capture-templates
+      '(("t" "TODO" entry (file "~/org/todo.org")
+         "* TODO %?\n %i\n %a")))
+
+(setq org-agenda-custom-commands
+      '((" " "Personal agenda"
+         ((agenda ""
+                ((org-agenda-span 'day)))
+          (todo "TODO"
+                ((org-agenda-overriding-header "Unscheduled tasks")
+                 (org-agenda-files '("~/org/todo.org"))
+                 (org-agenda-skip-function '(org-agenda-skip-entry-if
+                                             'scheduled 'deadline))))
+           ))))
+
+(global-subword-mode 1)
+
+(map! :n "L" #'evil-end-of-line
+      :n "H" #'evil-first-non-blank
+      :n "C-a" #'evil-numbers/inc-at-pt
+      :n "C-x" #'evil-numbers/dec-at-pt
+      :n "RET" #'+fold/toggle)
+
+(map! :leader
+      :desc "Flycheck next error" "c n" #'flycheck-next-error
+      :desc "Flycheck previous error" "c N" #'flycheck-previous-error
+      :desc "Flycheck verify setup" "c v" #'flycheck-verify-setup
+      :desc "Flycheck select checker" "c S" #'flycheck-select-checker)
+
+(map! :leader
+      :desc "Wrap parens" "c p" #'sp-wrap-round)
+
+;; evil-multiedit
+;; cf. https://github.com/hlissner/evil-multiedit
+(map! "M-r" #'evil-multiedit-match-all)
+
+;; Haskell setup
+(defun +my/haskell-setup ()
+  (setq lsp-haskell-server-path "haskell-language-server-wrapper")
+  (setq haskell-mode-stylish-haskell-path "fourmolu")
+  (setq lsp-haskell-formatting-provider "fourmolu")
+  (setq flycheck-haskell-hlint-executable "hlint")
+  (after! flycheck-mode
+    (add-to-list 'flycheck-disabled-checkers 'haskell-ghc)
+    (add-to-list 'flycheck-disabled-checkers 'haskell-stack-ghc))
+  (add-hook 'lsp-after-initialize-hook
+            (lambda () (flycheck-add-next-checker 'lsp 'haskell-hlint)))
+  (set-formatter! 'cabal-fmt "cabal-fmt" :modes '(haskell-cabal-mode))
+  (setq flycheck-hlintrc ".hlint.yaml")
+  ;; LSP's hlint doesn't respect config file
+  (setq lsp-haskell-hlint-on nil))
+
+;; hoogle integration
+(defun haskell-hoogle-local-lookup ()
+  "Query local hoogle server"
+  (interactive)
+  (if (haskell-hoogle-server-live-p)
+      (haskell-hoogle-lookup-from-local)
+    (progn
+      (haskell-hoogle-start-server)
+      (haskell-hoogle-lookup-from-local))))
+
+(map! :leader
+      :desc "Query local hoogle server" "s h" #'haskell-hoogle-local-lookup
+      :desc "Restart LSP workspace" "l r" #'lsp-workspace-restart
+      :desc "Lens lookup" "l l" #'lsp-avy-lens) ;; lookup wingman actions
+
+(add-hook! '(haskell-mode-hook haskell-literate-mode-hook) #'+my/haskell-setup)
+
+;; quick jumps
+(evil-snipe-mode +1)
+(evil-snipe-override-mode +1)
+
+;; (ya)snipets
+(defun +my/snippet-setup ()
+  (yas-activate-extra-mode 'fundamental-mode))
+
+(yas-global-mode 1)
+(add-hook 'yas-minor-mode-hook #'+my/snippet-setup)
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
@@ -79,36 +189,17 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
-(setq treemacs-follow-mode 't)
-
-;; LSP breakcrumbs
-(setq lsp-headerline-breadcrumb-enable nil)
-(setq lsp-headerline-breadcrumb-icons-enable nil)
-
-(setq lsp-signature-auto-activate t
-      lsp-signature-doc-lines 1
-      lsp-ui-doc-enable 1)
-
-;; LSP with Haskell
-(setq lsp-haskell-server-path "haskell-language-server-wrapper"
-      lsp-haskell-formatting-provider "fourmolu")
-
-;; wrap lines at 80 characters in all modes.
-(setq-default fill-column 80)
-(+global-word-wrap-mode +1)
-
+;; projectile settings
 (after! projectile
-  (setq projectile-project-root-files-bottom-up (remove ".git"
-          projectile-project-root-files-bottom-up))
+  (setq projectile-project-root-files-bottom-up
+        (remove ".git" projectile-project-root-files-bottom-up))
 
   (setq projectile-project-search-path
-        '( ("~/code/") "~/.config/"))
+        '( ("~/code/") "~/.dotfiles/"))
 
-  (setq projectile-ignored-projects '("~/"))
   (setq projectile-enable-caching t))
 
-(setq auth-sources '("~/.authinfo.gpg"))
-
+;; column indicator
 (add-hook 'prog-mode-hook #'whitespace-mode)
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 
@@ -121,29 +212,19 @@
   :hook (haskell-mode . lsp-deferred)
   :commands (lsp lsp-deferred))
 
+;; do not watch .git folders in LSP.
 (with-eval-after-load 'lsp-mode
-  (add-to-list 'lsp-file-watch-ignored-directories "/\\.git$")
-  (add-to-list 'lsp-file-watch-ignored-directories "/\\.spago$")
-  (add-to-list 'lsp-file-watch-ignored-directories "/frontend$"))
+  (add-to-list 'lsp-file-watch-ignored-directories "/\\.git$"))
 
-;; convenient navigation and editing
-(map! "M-r" #'evil-multiedit-match-all)
-(evil-define-key 'normal 'global
-  "H" "^"   ;; first character in line
-  "L" "g_"  ;; last character in line
-  )
-
-;; global beacon minor-mode
-(use-package! beacon)
-(after! beacon (beacon-mode 1))
-
-;; org-alert
+;; org-agenda notifications
 (use-package org-alert
   :ensure t
   :custom (alert-default-style 'notifications)
   :config
   (setq org-alert-interval 300
-        org-alert-notification-title "org-alert")
+        org-alert-notify-cutoff 10
+        org-alert-notify-after-event-cutoff 10
+        org-alert-notification-title "Reminder")
   (org-alert-enable))
 
 ;; LaTex C-c C-x C-l
@@ -152,89 +233,5 @@
   :hook (org-mode . org-fragtog-mode)
   )
 
-;; toogle emphasis markers in org-mode
-(setq org-hide-emphasis-markers t)
-(defun org-toogle-emphasis ()
-  "Toogle showing emphasis markers in org-mode"
-  (interactive)
-  (if org-hide-emphasis-markers
-      (set-variable 'org-hide-emphasis-markers nil)
-    (set-variable 'org-hide-emphasis-markers t)))
-(define-key org-mode-map (kbd "C-c e") 'org-toogle-emphasis)
-
-;; hoogle integration
-(defun haskell-hoogle-local-lookup ()
-  "Query local hoogle server"
-  (interactive)
-  (if (haskell-hoogle-server-live-p)
-      (haskell-hoogle-lookup-from-local)
-    (progn
-      (haskell-hoogle-start-server)
-      (haskell-hoogle-lookup-from-local))))
-
-(map! :leader
-      (:prefix ("s" . "search")
-       :desc "Query local hoogle server"
-       "h" #'haskell-hoogle-local-lookup))
-
-(map! :leader
-      :desc "Restart LSP workspace"
-      "l r" #'lsp-workspace-restart)
-
-(setq ispell-program-name "aspell")
-(setq ispell-dictionary "en_GB")
-
-;; yasnippets
-(yas-global-mode 1)
-(add-hook 'yas-minor-mode-hook
-          (lambda () (yas-activate-extra-mode 'fundamental-mode)))
-
-(evil-snipe-mode +1)
-(evil-snipe-override-mode +1)
-
-(defun replace-imports () (interactive)
- "Replace import block with a -ddump-minimal-imports generated one"
- (haskell-navigate-imports)
- (while (not (haskell-navigate-imports-after-imports-p)) (kill-line))
- (open-line 1)
- (insert-file-contents
-        (concat (haskell-cabal-find-dir)
-                "dist-newstyle/build/x86_64-linux/ghc-9.2.1/"
-                (haskell-cabal-get-field "name") "-"
-                (haskell-cabal-get-field "version") "/build/"
-                (haskell-guess-module-name-from-file-name
-                 (buffer-file-name)) ".imports"))
- )
-
 ;; KMonad configuration files
 (use-package! kbd-mode)
-
-;; Use org-alert
-(use-package org-alert
-  :ensure t
-  :custom (alert-default-style 'notifications)
-  :config
-  (setq org-alert-interval 300
-        org-alert-notification-title "Reminder")
-  (org-alert-enable))
-
-;; Wingman actions
-(map! :leader
-      (:prefix ("l" . "LSP")
-       :desc "Lens lookup"
-       "l" #'lsp-avy-lens))
-
-;; color code snippets
-(use-package! color)
-(set-face-attribute 'org-block nil :background
-                    (color-darken-name
-                     (face-attribute 'default :background) 3))
-
-;; parentheses
-(map! :leader
-      (:prefix-map ("c" . "code")
-        (:prefix ("p" . "parentheses")
-                :desc "wrap round" "p" #'sp-wrap-round ;; shortcut
-                :desc "wrap round" "(" #'sp-wrap-round
-                :desc "wrap square" "[" #'sp-wrap-square
-                 )))

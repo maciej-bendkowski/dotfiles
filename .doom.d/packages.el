@@ -52,20 +52,18 @@
 ;; dashboard
 (package! dashboard)
 
-;; highlight cursor
-(package! beacon)
-
 ;; org-mode notifications
 (package! org-alert :recipe
   (:repo "spegoraro/org-alert"))
 
-;; LaTeX jumps
+;; Better LaTeX support
 (package! org-fragtog)
 (package! mermaid-mode)
 
 ;; file outline
 (package! imenu-list)
 
+;; Quick jumps
 (package! evil-snipe)
 
 ;; KMonad configuration files
