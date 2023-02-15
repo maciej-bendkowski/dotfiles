@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: LANGUAGE pragma
+# uuid: language-pragma
+# key: lang
+# condition: t
+# --
+{-# LANGUAGE $1 #-}$0

@@ -165,11 +165,9 @@
 (evil-snipe-override-mode +1)
 
 ;; (ya)snipets
-(defun +my/snippet-setup ()
-  (yas-activate-extra-mode 'fundamental-mode))
-
 (yas-global-mode 1)
-(add-hook 'yas-minor-mode-hook #'+my/snippet-setup)
+(add-hook 'yas-minor-mode-hook (lambda ()
+   (yas-activate-extra-mode 'fundamental-mode)))
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
