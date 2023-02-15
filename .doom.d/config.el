@@ -73,13 +73,18 @@
 
 (setq org-journal-dir "~/org/journal"
       org-journal-date-prefix "#+TITLE: "
-      org-journal-time-prefix "* "
       org-journal-date-format "%a, %d-%m-%Y"
+      org-journal-time-prefix "* "
       org-journal-file-format "%Y-%m-%d.org")
 
+(setq org-tag-alist
+  '(("@home" . ?H)
+    ("@work" . ?W)))
+
 (setq org-capture-templates
-      '(("t" "TODO" entry (file "~/org/todo.org")
-         "* TODO %?\n %i\n %a")))
+      '(("t" "Task" entry (file "~/org/todo.org") "* TODO :@work: %?\n %i\n %a")
+        ("p" "Personal" entry (file "~/org/personal.org") "* TODO :@home: %?\n %i\n %a")
+        ))
 
 (setq org-todo-keywords
   '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
@@ -92,6 +97,11 @@
           (todo "TODO"
                 ((org-agenda-overriding-header "Unscheduled tasks")
                  (org-agenda-files '("~/org/todo.org"))
+                 (org-agenda-skip-function '(org-agenda-skip-entry-if
+                                             'scheduled 'deadline))))
+          (todo "TODO"
+                ((org-agenda-overriding-header "Unscheduled personal tasks")
+                 (org-agenda-files '("~/org/personal.org"))
                  (org-agenda-skip-function '(org-agenda-skip-entry-if
                                              'scheduled 'deadline))))
            ))))
