@@ -90,20 +90,20 @@
   '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
     (sequence "|" "WAIT(w)" "BACK(b)")))
 
+(setq org-agenda-include-diary t)
+
 (setq org-agenda-custom-commands
       '(("d" "Dashboard"
          ((agenda ""
-                ((org-agenda-span 'day)))
+                ((org-agenda-span 'week)))
           (todo "TODO"
                 ((org-agenda-overriding-header "Unscheduled tasks")
                  (org-agenda-files '("~/org/todo.org"))
                  (org-agenda-skip-function '(org-agenda-skip-entry-if
                                              'scheduled 'deadline))))
           (todo "TODO"
-                ((org-agenda-overriding-header "Unscheduled personal tasks")
-                 (org-agenda-files '("~/org/personal.org"))
-                 (org-agenda-skip-function '(org-agenda-skip-entry-if
-                                             'scheduled 'deadline))))
+                ((org-agenda-overriding-header "Personal tasks")
+                 (org-agenda-files '("~/org/personal.org"))))
            ))))
 
 (global-subword-mode 1)
