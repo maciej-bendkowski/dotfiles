@@ -160,6 +160,10 @@
 
 (add-hook! '(haskell-mode-hook haskell-literate-mode-hook) #'+my/haskell-setup)
 
+;; Agda setup FIXME: Seemingly not working
+;; (add-hook 'agda2-mode-hook (lambda ()
+;;   (activate-input-method "Agda")))
+
 ;; quick jumps
 (evil-snipe-mode +1)
 (evil-snipe-override-mode +1)
@@ -247,3 +251,12 @@
 
 ;; KMonad configuration files
 (use-package! kbd-mode)
+
+;; open in external applications
+(use-package! openwith)
+(openwith-mode t)
+
+(setq openwith-associations
+      '( ("\\.pdf\\'" "evince" (file))
+         ("\\.mp4\\'" "mpv" (file)) )
+      )
