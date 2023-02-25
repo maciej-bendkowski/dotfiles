@@ -40,8 +40,8 @@
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type 'relative)
 
-;; wrap lines at 80 characters in all modes.
-(setq-default fill-column 80)
+;; wrap lines at 100 characters in all modes.
+(setq-default fill-column 100)
 (+global-word-wrap-mode +1)
 
 (setq doom-font (font-spec :family "Hasklug Nerd Font" :size 18)
@@ -106,8 +106,6 @@
                  (org-agenda-files '("~/org/personal.org"))))
            ))))
 
-(global-subword-mode 1)
-
 (map! :n "L" #'evil-end-of-line
       :n "H" #'evil-first-non-blank
       :n "C-a" #'evil-numbers/inc-at-pt
@@ -121,7 +119,8 @@
       :desc "Flycheck select checker" "c S" #'flycheck-select-checker)
 
 (map! :leader
-      :desc "Wrap parens" "c p" #'sp-wrap-round)
+      :desc "Wrap parens" "c p" #'sp-wrap-round
+      :desc "Wrap brackets" "c [" #'sp-wrap-square)
 
 ;; evil-multiedit
 ;; cf. https://github.com/hlissner/evil-multiedit
@@ -129,6 +128,7 @@
 
 ;; Haskell setup
 (defun +my/haskell-setup ()
+  (setq lsp-haskell-plugin-tactics-config-timeout-duration 2)
   (setq lsp-haskell-server-path "haskell-language-server-wrapper")
   (setq haskell-mode-stylish-haskell-path "fourmolu")
   (setq lsp-haskell-formatting-provider "fourmolu")
@@ -159,6 +159,30 @@
       :desc "Lens lookup" "l l" #'lsp-avy-lens) ;; lookup wingman actions
 
 (add-hook! '(haskell-mode-hook haskell-literate-mode-hook) #'+my/haskell-setup)
+
+;; NOTE: Is not available outside of LSP.
+;; will define elisp functions for the given lsp code actions, prefixing the
+;; given function names with "lsp"
+(defmacro lsp-make-interactive-code-action (func-name code-action-kind)
+  "Define an interactive function FUNC-NAME that attempts to
+execute a CODE-ACTION-KIND action."
+  `(defun ,(intern (concat "lsp-" (symbol-name func-name))) ()
+     ,(format "Perform the %s code action, if available." code-action-kind)
+     (interactive)
+     ;; Even when `lsp-auto-execute-action' is nil, it still makes sense to
+     ;; auto-execute here: the user has specified exactly what they want.
+     (let ((lsp-auto-execute-action t))
+       (condition-case nil
+           (lsp-execute-code-action-by-kind ,code-action-kind)
+         (lsp-no-code-actions
+          (when (called-interactively-p 'any)
+            (lsp--info ,(format "%s action not available" code-action-kind))))))))
+
+(lsp-make-interactive-code-action wingman-fill-hole "refactor.wingman.fillHole")
+(lsp-make-interactive-code-action wingman-case-split "refactor.wingman.caseSplit")
+(lsp-make-interactive-code-action wingman-refine "refactor.wingman.refine")
+(lsp-make-interactive-code-action wingman-split-func-args "refactor.wingman.spltFuncArgs")
+(lsp-make-interactive-code-action wingman-use-constructor "refactor.wingman.useConstructor")
 
 ;; Agda setup FIXME: Seemingly not working
 ;; (add-hook 'agda2-mode-hook (lambda ()
@@ -207,8 +231,6 @@
 
 ;; projectile settings
 (after! projectile
-  (setq projectile-project-root-files-bottom-up
-        (remove ".git" projectile-project-root-files-bottom-up))
 
   (setq projectile-project-search-path
         '( ("~/code/") "~/.dotfiles/"))
@@ -220,7 +242,7 @@
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 
 (setq-default
- whitespace-line-column 80
+ whitespace-line-column 100
  whitespace-style '(face lines))
 
 ;; deferr LSP in haskell-mode so to avoid race conditions with direnv.
