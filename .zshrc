@@ -129,3 +129,5 @@ export PATH=~/.emacs.d/bin:~/.local/bin:$PATH
 export LOCALE_ARCHIVE=/usr/lib/locale/locale-archive
 
 eval "$(direnv hook zsh)"
+
+[ -f "/home/duder/.ghcup/env" ] && source "/home/duder/.ghcup/env" # ghcup-env
