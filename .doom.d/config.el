@@ -112,6 +112,12 @@
       :n "C-x" #'evil-numbers/dec-at-pt
       :n "RET" #'+fold/toggle)
 
+;; navigation in insert mode
+(map! :i "C-h" #'evil-backward-char
+      :i "C-j" #'evil-next-line
+      :i "C-k" #'evil-previous-line
+      :i "C-l" #'evil-forward-char)
+
 (map! :leader
       :desc "Flycheck next error" "c n" #'flycheck-next-error
       :desc "Flycheck previous error" "c N" #'flycheck-previous-error
@@ -282,3 +288,20 @@ execute a CODE-ACTION-KIND action."
       '( ("\\.pdf\\'" "evince" (file))
          ("\\.mp4\\'" "mpv" (file)) )
       )
+
+;; Transparency, cf. https://www.emacswiki.org/emacs/TransparentEmacs
+(set-frame-parameter nil 'alpha-background 100) ; For current frame
+(add-to-list 'default-frame-alist '(alpha-background . 100)) ; For all new frames henceforth
+
+ (defun toggle-transparency ()
+   (interactive)
+   (let ((alpha (frame-parameter nil 'alpha)))
+     (set-frame-parameter
+      nil 'alpha
+      (if (eql (cond ((numberp alpha) alpha)
+                     ((numberp (cdr alpha)) (cdr alpha))
+                     ;; Also handle undocumented (<active> <inactive>) form.
+                     ((numberp (cadr alpha)) (cadr alpha)))
+               100)
+          '(85 . 50) '(100 . 100)))))
+ (global-set-key (kbd "C-c t") 'toggle-transparency)
