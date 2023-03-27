@@ -73,3 +73,6 @@
 
 ;; open files with external programs
 (package! openwith)
+
+;; Typing exercise
+(package! speed-type)
