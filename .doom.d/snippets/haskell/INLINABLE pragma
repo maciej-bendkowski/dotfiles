@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: INLINABLE pragma
-# uuid: inlinable-pragma
-# key: inl
-# condition: t
-# --
-{-# INLINABLE $1 #-}$0
