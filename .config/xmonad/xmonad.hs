@@ -162,7 +162,7 @@ myManageHooks =
     , className =? "Evince" --> viewShift "4:pdf"
     , className =? "Slack" --> viewShift "6:chat"
     , className =? "Discord" --> viewShift "6:chat"
-    , className =? "" --> viewShift "7:spotify"
+    , className =? "Spotify" --> viewShift "7:spotify"
     ]
  where
   viewShift = doF . liftM2 (.) greedyView shift
