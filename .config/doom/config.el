@@ -119,6 +119,12 @@
                  (org-agenda-files '("~/org/personal.org"))))
            ))))
 
+;; LaTex C-c C-x C-l
+(use-package! org-fragtog
+  :after org
+  :hook (org-mode . org-fragtog-mode)
+  )
+
 ;; navigation in normal mode
 (map! :n "L" #'evil-end-of-line
       :n "H" #'evil-first-non-blank

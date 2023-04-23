@@ -53,6 +53,9 @@
 (package! org-alert :recipe
   (:repo "spegoraro/org-alert"))
 
+;; better LaTeX support
+(package! org-fragtog)
+
 ;; file outline
 (package! imenu-list)
 
